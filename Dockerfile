@@ -1,2 +1,2 @@
 FROM microsoft/dotnet:2.1-runtime AS base
-RUN curl --output libssl1.0.0_1.0.1t-1+deb8u11_amd64.deb http://security.debian.org/debian-security/pool/updates/main/o/openssl/libssl1.0.0_1.0.1t-1+deb8u11_amd64.deb && dpkg -i libssl1.0.0_1.0.1t-1+deb8u11_amd64.deb
+RUN apt update && apt install -y libssl1.0.0
