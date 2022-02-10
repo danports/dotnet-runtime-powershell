@@ -1,5 +1,12 @@
-# We use Ubuntu rather than the default Debian image because this image correctly packages the old libssl & libcrypto versions that libpsrpcclient depends upon.
-FROM mcr.microsoft.com/dotnet/core/runtime:3.1-bionic AS base
-# This image lacks an /etc/services file, so we supply one to work around this issue: https://github.com/Microsoft/omi/issues/623
-RUN apt-get update && apt-get install -y gss-ntlmssp libssl1.0.0 && echo 'http            80/tcp          www www-http' > /etc/services
-# TODO: Clear apt cache.
+# We use Ubuntu rather than the default Debian image for historical reasons - either should work.
+FROM mcr.microsoft.com/dotnet/runtime:5.0-focal AS base
+# We install netbase since this image lacks an /etc/services file, and that's a problem: https://github.com/Microsoft/omi/issues/623
+# We install gss-ntlmssp since it is needed for PowerShell authentication.
+RUN apt-get update && \
+    apt-get install -y gss-ntlmssp wget netbase && \
+    # Ubuntu in its Focal release no longer includes the ancient libssl1.0.0 package in its default repositories - a wise choice.
+    # Unfortunately, libpsrpcclient still depends upon it, so we need to install it manually.
+    wget http://security.ubuntu.com/ubuntu/pool/main/o/openssl1.0/libssl1.0.0_1.0.2n-1ubuntu5.7_amd64.deb && \
+    dpkg -i libssl1.0.0_1.0.2n-1ubuntu5.7_amd64.deb && \
+    rm libssl1.0.0_1.0.2n-1ubuntu5.7_amd64.deb && \
+    apt-get clean
